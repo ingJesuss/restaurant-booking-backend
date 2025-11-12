@@ -1,0 +1,38 @@
+
+services:
+  # 1. Base de Datos MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-restaurant
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  # 2. Servidor API Backend
+  api:
+    build: .
+    container_name: api-restaurant
+    depends_on:
+      - mongodb # Garantiza que MongoDB esté listo antes de iniciar la API
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      # EXPLICACIÓN CLAVE: Usamos el nombre del servicio ('mongodb'), no 'localhost', para la conexión interna de Docker.
+      MONGO_URI: mongodb://mongodb:27017/restaurantDB
+      NODE_ENV: production
+      PORT: 5000
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
